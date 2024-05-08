@@ -2,9 +2,9 @@ package api
 
 import (
     "net/http"
-
     "github.com/go-chi/chi/v5"
     "github.com/go-chi/chi/v5/middleware"
+	"go-chi/database"
 )
 
 func Run() {
@@ -13,9 +13,9 @@ func Run() {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-    r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+    r.Get("/health-check", func(w http.ResponseWriter, r *http.Request) {
         w.Write([]byte("health check!"))
     })
-
+	database.Connect()
     http.ListenAndServe(":5003", r)
 }
