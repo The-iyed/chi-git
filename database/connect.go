@@ -1,35 +1,41 @@
 package database
 
 import (
-	"fmt"
-	"log"
-	"github.com/jmoiron/sqlx"
-    _ "github.com/lib/pq"
-  )
+	"context"
+    "log"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "admin"
-	dbname   = "golangdb"
-  )
+
 
 func Connect() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-    "password=%s dbname=%s sslmode=disable",
-    host, port, user, password, dbname)
 
-	db, err := sqlx.Connect("postgres", psqlInfo)   
-	if err != nil {
-        log.Fatalln(err)
-    }
-  
-    defer db.Close()
- 
-    if err := db.Ping(); err != nil {
+	client, err := mongo.NewClient(options.Client().ApplyURI(EnvMongoURI()))
+    if err != nil {
         log.Fatal(err)
-    } else {
-        log.Println("Successfully Connected")
     }
+
+    ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+    err = client.Connect(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    err = client.Ping(ctx, nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println("Connected to MongoDB")
+    return client
+
+}
+
+
+var DB *mongo.Client = ConnectDB()
+
+func GetCollection(client *mongo.Client, collectionName string) *mongo.Collection {
+    collection := client.Database("golangAPI").Collection(collectionName)
+    return collection
 }
