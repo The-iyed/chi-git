@@ -1,21 +1,16 @@
 package api
 
 import (
-    "net/http"
-    "github.com/go-chi/chi/v5"
-    "github.com/go-chi/chi/v5/middleware"
+    "github.com/gofiber/fiber/v2"
 	"go-chi/database"
 )
 
 func Run() {
-    r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-    r.Get("/health-check", func(w http.ResponseWriter, r *http.Request) {
-        w.Write([]byte("health check!"))
+    app := fiber.New()
+    app.Get("/", func(c *fiber.Ctx) error {
+        return c.JSON(&fiber.Map{"data": "Hello from server !"})
     })
-	database.Connect()
-    http.ListenAndServe(":5003", r)
+    database.Connect()
+    routes.UserRoute(app)
+    app.Listen(":5003")
 }
